@@ -1,0 +1,61 @@
+#! /bin/bash
+
+# Script to check if  backup process can initiate on a given path.
+
+# This should be executed remotely before starting the backup. The root
+# path for the backup is passed as an argument (required).
+
+# If backups are allowed, will exit (status 0) and return the actual
+# directory to use for backups.
+# If the backup does not initiate within 60 seconds, then the system
+# may allow other backups to begin instead.
+
+# Will exit with status 1 if the backup is not allowed (usually another
+# backup is already in progress).
+
+if [[ $# -ne 1 ]]; then
+	echo "Required argument (path to backup root directory) missing." >&2
+	exit 1
+fi
+
+backup_root_path="$1"
+
+# The following variables are automatically set by setup.sh.
+#CONFIG 
+PID_FILENAME
+MONITOR_DIR
+BACKUP_DIR
+BACKUP_DONE_FILENAME
+LOCK_FILENAME
+#DONE 
+
+mond="${backup_root_path}/${MONITOR_DIR}"
+
+pid_file="${mond}/${PID_FILENAME}.pid"
+
+lockfile="${mond}/${LOCK_FILENAME}.lock"
+
+( flock -n 78 
+	if [[ -e "$pid_file" ]]; then
+		echo "Backup already in progress." >&2
+		exit 2
+	else
+		echo "-1" > "$pid_file"
+	fi
+) 78>$lockfile
+pid_check_ec=$?
+ 
+if [[ $pid_check_ec -ne 0 ]]; then
+	exit $pid_check_ec
+fi
+
+# Also check if there is a completed backup being processed
+bud_file="${mond}/${BACKUP_DONE_FILENAME}"
+
+if [[ -e "$bud_file" ]]; then
+	echo "Waiting on previous backup to be processed." >&2
+	exit 3
+fi
+
+# Otherwise, we can exit normally, outputting the path to the backup directory
+echo "${backup_root_path}/${BACKUP_DIR}"

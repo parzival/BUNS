@@ -1,0 +1,37 @@
+#! /bin/bash
+
+# Script to check if restore process can initiate on a given path
+
+# Will exit with status 0 and return the archive directory
+
+# Will exit with non-zero status if the backup is not allowed (usually another
+# backup is already in progress).
+
+if [[ $# -ne 1 ]]; then
+	echo "Required argument (backup root path) missing." >&2
+	exit 1
+fi
+
+backup_root_path="$1"
+
+# The following variables are automatically set by setup.sh.
+#CONFIG
+MONITOR_DIR
+BACKUP_REPOSITORY
+BACKUP_DONE_FILENAME
+#DONE
+
+mond="${backup_root_path}/${MONITOR_DIR}"
+archivedir="${backup_root_path}/${BACKUP_REPOSITORY}"
+
+# Also check if there is a completed backup being processed
+bud_file="${mond}/${BACKUP_DONE_FILENAME}"
+
+# Return the archive directory in either case
+echo "$archivedir"
+
+if [[ -e "$bud_file" ]]; then
+	echo "Waiting on previous backup to be processed." >&2
+	exit 3
+fi
+

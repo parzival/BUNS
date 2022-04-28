@@ -1,0 +1,117 @@
+#! /bin/bash
+
+# Auto-generated file for uninstalling BUNS files, created using a template.
+# This is intended for cleaning up an install of BUNS if changes are made to
+# the config file that might leave unneeded files in place, or to remove
+# the installation when no longer using BUNS.
+# This will remove the monitor directories, incrontab entries,
+# log file, and system services. It will also remove user scripts if a user 
+# was specified during the install.
+# If the -x option is included, the config file will be removed.
+#
+# The backup folders/subvolumes will NOT be deleted. The script
+# directory (which contains this script) will also NOT be deleted.
+#
+# Manually removing the script directory will then remove BUNS from
+# the system.
+
+remove_config=false
+
+function exit_bad_argument {
+	cat >&2 <<EOF
+Usage: $0 [-p] 
+  Uninstall script for BUNS.
+  -x option will remove the config file. 
+EOF
+	exit 1
+}
+
+while getopts "x" options; do
+	case "$options" in
+		x)
+			remove_config=true
+			;;
+		:) 
+			printf "Error: -%s requires an argument.\n" "$OPTARG" >&2
+			exit_bad_argument
+			;;
+		*)
+			exit_bad_argument
+			;;
+	esac
+done
+
+# The following variables are set automatically by setup.sh
+#CONFIG
+CLEANUP_SCRIPT
+USER_SCRIPTS
+INCRON_ENTRIES
+SYSTEM_SERVICE
+MONITOR_PATHS
+LOG_FILE
+CONFIG_FILE
+#DONE
+
+echo "Removing system service..."
+# Disable & remove system service
+systemctl stop $SYSTEM_SERVICE 
+systemctl disable $SYSTEM_SERVICE
+
+rm -f /etc/systemd/system/$SYSTEM_SERVICE.service
+
+# Remove incrontab entries
+echo "Removing incrontab entries..."
+
+# Get the current incrontab for temporary editing
+temp_incron=/tmp/bunsincron
+temp_edited=/tmp/bunsincron_edited
+
+incrontab -l >"$temp_incron"
+incron_edited=false
+line_exists=false
+
+while read line; do
+	line_exists=false
+	for entry in "${INCRON_ENTRIES[@]}"; do
+                # Look for incron entry
+                editregex="^${entry}"
+                if [[ "$line" =~ $editregex ]]; then
+                        line_exists=true
+                        continue
+                fi
+	done
+	if [[ "$line_exists" == true ]]; then
+		incron_edited=true
+		continue
+	else
+		echo "$line"
+	fi
+done <"$temp_incron" >"$temp_edited"
+
+if [[ "$incron_edited" == true ]]; then
+	incrontab "$temp_edited" 
+fi
+
+echo "Removing monitor files..."
+# Run cleanup script 
+source "$CLEANUP_SCRIPT"
+for mond in "${MONITOR_PATHS[@]}"; do
+	rm -rf "$mond"
+done
+
+# Remove user scripts (array should be empty if user was not specified)
+echo "Removing user scripts..."
+for uscript in ${USER_SCRIPTS[@]}; do
+	rm -f "$uscript"
+done
+
+# Remove log file
+echo "Removing log file..."
+rm -f "$LOG_FILE"
+
+if [[ "$remove_config" == true ]]; then
+	echo "Removing config file..."
+	rm -f "$CONFIG_FILE"
+fi
+
+echo "done."

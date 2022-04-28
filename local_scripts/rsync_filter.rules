@@ -1,0 +1,72 @@
+# These rules are designed for use with MacOS 
+# Tested with Mojave (MacOS 10.14) and Big Sur (MacOS 10.15)
+- /dev/
+- /home/
+- /net
+- /private/tmp/**
+- /cores/**
+- /.vol/**
+- /Volumes/**
+- /Network/**
+- /automount/**
+- /private/Network/**
+- /private/tftpboot/**
+- /private/var/automount/**
+- /private/var/folders/**
+- /private/var/db/**
+- /private/var/protected/**
+- /private/var/networkd/**
+- /private/var/vm/**
+- /private/var/tmp/**
+- /private/var/log/**
+- /private/var/spool/**
+- /private/var/launchd/
+- /private/var/run/**
+- /System/Library/Templates/Data/private/var/folders/**
+- /System/Library/Templates/Data/private/var/db/**
+- /System/Library/Templates/Data/private/var/vm/**
+- /System/Library/Templates/Data/private/var/tmp/**
+- /System/Library/Templates/Data/private/var/networkd/**
+- /System/Library/Templates/Data/private/var/protected/**
+- /System/Library/Templates/Data/private/var/log/**
+- /System/Library/Templates/Data/private/var/spool/**
+- /System/Library/Templates/Data/private/var/run/**
+- Backups.backupdb
+- .webtmp
+- .Trash*
+- /?MobileBackups**
+- .TemporaryItems/
+- /.hotfiles.btree
+- .Spotlight-V100/
+- .DocumentRevisions-V100*
+- 'Desktop DB'
+- 'Desktop DF'
+- /.*fsevents*
+- Library/Caches/**
+- Library/Extensions/Caches/**
+- Library/Logs/**
+- Library/Metadata/CoreSpotlight/**
+- Library/Updates/
+- Library/Safari/Icons
+- Library/Application Support/SyncServices/data.version
+- Library/Application Support/Ubiquity/
+- Library/Mail/V2/MailData/Envelope Index
+- Library/Mail/V2/MailData/Envelope Index-journal
+- Library/Mail/V2/MailData/AvailableFeeds
+- Library/Mail/V2/MailData/BackingStoreUpdateJournal
+- Library/Mail/V2/MailData/Envelope Index-shm
+- Library/Mail/V2/MailData/Envelope Index-wal
+- Library/PubSub/Database/**
+- Library/PubSub/Downloads/**
+- Library/PubSub/Feeds/**
+- Library/Safari/Icons.db
+- Library/Safari/WebpageIcons.db
+- Library/Safari/HistoryIndex.sk
+- /System/Volumes/Data/
+- /Users/Guest/
+- '/macOS Install Data'
+- .ssh/
+# xattr filters (These occasionally contain data too large for rsync to handle)
+-x com.apple.data-container-personality
+-x com.apple.metadata:kMDItemWhereFroms
+

@@ -1,0 +1,70 @@
+#! /bin/bash
+
+# Script to start rsync and save pid file to a monitor folder.
+
+# This should be the file pointed to by 'rsync-path' in the
+# remote machine's rsync command.
+
+# The wrapper script must be invoked with the 'root' path for the backup,
+# the name to be used for the backup (typically the remote machine name),
+# and the remote machine's timestamp to be used for this backup.
+
+set -m  # Needed for Job control
+ 
+if [[ $# -le 3 ]]; then
+	self="$(basename $BASH_SOURCE)"
+	echo "${self}: Required arguments missing." >&2
+	exit 1
+fi
+
+backup_root_path="$1"
+shift
+
+backup_name="$1"
+shift
+
+backup_time="$1"
+shift
+
+# The following variables are set automatically by setup.sh
+#CONFIG
+MONITOR_DIR
+BACKUP_DIR
+PID_FILENAME
+BACKUP_DONE_FILENAME
+LOCK_FILENAME
+BACKUP_GROUP
+#DONE
+
+monitor_folder="${backup_root_path}/${MONITOR_DIR}"
+pid_file="${monitor_folder}/${PID_FILENAME}.pid"
+lockfile="${monitor_folder}/${LOCK_FILENAME}.lock"
+
+bud="${backup_root_path}/${BACKUP_DIR}/${backup_name}"
+mkdir -p "${bud}"
+chown :"$BACKUP_GROUP" "$bud" 
+
+# Run the actual rsync command
+rsync "$@" &  
+rspid=$! 
+( flock -n 86
+	if [[ -e "$pid_file" ]]; then
+		echo "$rspid"  >"$pid_file" 
+	else
+		echo "Error: PID file is missing." >&2
+		exit 1
+	fi
+) 86>$lockfile
+
+fg %1 >/dev/null  # Should be only the rsync job
+
+# Remove pid, and signal backup is complete if we finished successfully
+if [[ $? == 0 ]]; then
+	completion_file="${monitor_folder}/${BACKUP_DONE_FILENAME}"
+	( flock -n 57
+		if [[ -e "$pid_file" ]]; then
+			rm "$pid_file"
+		fi
+		echo "$backup_date" >"$completion_file"
+	) 57>$lockfile
+fi
