@@ -130,24 +130,27 @@ Direct match rules ('D'), which can also be thought of as 'Date' rules, will mat
 
 Backup file names use ISO-8601 date format, although the colon between hour and minute may be replaced if the `COLON_REPLACEMENT` option is set in the config file. Although generally intended to match a particular date or time, other valid regular expression can be used, including any part of the file name. However, the '/' character is not allowed in the expression.
 
-An example backup name (using the default colon replacement of 'h') is /mnt/backup_disk/backups/archive/desktop/2020-10-31T05h30+05h00
+An example backup name (using the default colon replacement of 'h') is 
+```
+/mnt/backup_disk/backups/archive/desktop/2020-10-31T05h30+05h00
+```
 
 This gives the year, month, then day. The letter T is followed by time of day in 24-hour format, with the timezone adjustment afterward.
 
-Example Direct intervals:
-: `D3/202.-`   - keep the 3 most recent backups in the 202x decade
-: `D0/-0[123]T` - keep all backups made on the first 3 days of any month
-: `D1/-05-` - keep at least one backup made in the 5th month (May)
-: `D5/T16`  - keep up to 5 backups made in the 4 p.m. hour 
+Example Direct intervals  
+ `D3/202.-`   - keep the 3 most recent backups in the 202x decade  
+ `D0/-0[123]T` - keep all backups made on the first 3 days of any month  
+ `D1/-05-` - keep at least one backup made in the 5th month (May)  
+ `D5/T16`  - keep up to 5 backups made in the 4 p.m. hour  
 
 ### Keep 
 
 Keep rules ('K') will preserve at most the given number of backups, and will not preserve any backups older than the time period P. The most recent backups are given priority. A value of 0 indicates that all backups in the period will be kept. Since rules are combined and all applied prior to culling, multiple Keep rules are likely to be unnecessary. However, some situations (such as irregular, or changing backup intervals) might make additional Keep rules useful.
 
-Example Keep intervals:
-: `K10/P10d` - keep no more than 10 backups for the last 10 days
-: `K0/24h` - keep all backups made in the last 24 hours
-: `K100/P3Y` - keep the 100 most recent backups, but none older than 3 years
+Example Keep intervals
+ `K10/P10d` - keep no more than 10 backups for the last 10 days  
+ `K0/24h` - keep all backups made in the last 24 hours  
+ `K100/P3Y` - keep the 100 most recent backups, but none older than 3 years  
 
 ### Recurring
 
@@ -155,10 +158,10 @@ Recurring rules ('R') will attempt to preserve one backup per time period, going
 
 Recurring rules are meant to keep a roughly regular number of backups available in the archive, since these are not scheduling backups, but managing backups already made. There is an 'extension' applied to the recurring rule to avoid large gaps between preserved backups as they move from one period into another. See the note below and the file 'recurrence_extension.txt' for further information.
 
-Example Recurring intervals:
-: `R4/2w` - every two weeks, limit of four backups (8 weeks back)
-: `R20/P2d9h30m` - every 2 days, 9 and a half hours, limit of 20 ( ~48 days back)
-: `R6/120m` - every 120 minutes, limit of 6 ( 12 hours back )
+Example Recurring intervals  
+ `R4/2w` - every two weeks, limit of four backups (8 weeks back)  
+ `R20/P2d9h30m` - every 2 days, 9 and a half hours, limit of 20 ( ~48 days back)  
+ `R6/120m` - every 120 minutes, limit of 6 ( 12 hours back )  
 
 
 # Additional Notes
